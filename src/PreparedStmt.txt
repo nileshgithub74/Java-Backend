@@ -1,0 +1,81 @@
+/*
+=========================================================
+JDBC: STATEMENT vs PREPAREDSTATEMENT
+=========================================================
+
+Both Statement and PreparedStatement are used to execute SQL queries in JDBC.
+
+---------------------------------------------------------
+1. STATEMENT
+---------------------------------------------------------
+Explanation:
+
+- Statement is used for executing simple SQL queries.
+- SQL is written directly as a string.
+- Not safe for user input (SQL Injection risk).
+- Not efficient for repeated queries.
+- do not pass the query while creating statement;
+*/
+
+Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/testdb", "root", "password");
+
+Statement stmt = con.createStatement();
+
+// Example: SELECT using Statement
+ResultSet rs1 = stmt.executeQuery("SELECT * FROM users");
+
+System.out.println("---- STATEMENT OUTPUT ----");
+while (rs1.next()) {
+    System.out.println("ID: " + rs1.getInt("id") +
+                       ", Name: " + rs1.getString("name"));
+}
+
+/*
+Example of BAD practice (SQL Injection risk):
+
+String input = "1 OR 1=1";
+String query = "SELECT * FROM users WHERE id = " + input;
+ResultSet rs2 = stmt.executeQuery(query);
+*/
+
+/*
+---------------------------------------------------------
+2. PREPARED STATEMENT
+---------------------------------------------------------
+Explanation:
+
+- PreparedStatement is used for parameterized queries.
+- Uses '?' placeholders instead of direct values.
+- Prevents SQL Injection (secure).
+- Faster for repeated execution (precompiled query).
+*/
+
+String query = "SELECT * FROM users WHERE id = ?";
+PreparedStatement ps = con.prepareStatement(query);  -> while creating pass the query;
+
+// Setting parameter value
+ps.setInt(1, 1);
+
+// Execute query
+ResultSet rs2 = ps.executeQuery();
+
+System.out.println("\n---- PREPARED STATEMENT OUTPUT ----");
+while (rs2.next()) {
+    System.out.println("ID: " + rs2.getInt("id") +
+                       ", Name: " + rs2.getString("name"));
+}
+
+/*
+Example: INSERT using PreparedStatement
+*/
+
+PreparedStatement psInsert = con.prepareStatement(
+    "INSERT INTO users (id, name) VALUES (?, ?)"
+);
+
+psInsert.setInt(1, 5);
+psInsert.setString(2, "John");
+
+int rows = psInsert.executeUpdate();
+System.out.println("\nRows inserted: " + rows);
+
